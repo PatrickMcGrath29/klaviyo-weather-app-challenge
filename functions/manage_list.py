@@ -8,17 +8,24 @@ table = dynamodb.Table('klaviyo-user-data')
 
 
 def lambda_handler(event, context):
-    response = write_entry(event)
+
+    response = write_entry(json.loads(event['body']))
 
     if response:
         return {
             'statusCode': 200,
-            'body': json.dumps(response)
+            'body': json.dumps({
+                'status': 200,
+                'message': 'Processed Successfully'
+            })
         }
     else:
         return {
-            'statusCode': 200,
-            'body': 'Invalid Input'
+            'statusCode': 422,
+            'body': json.dumps({
+                'status': 422,
+                'message': 'Invalid Input'
+            })
         }
 
 

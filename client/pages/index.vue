@@ -54,13 +54,14 @@ export default {
           .filter((city) => {
             return city.value.toLowerCase().startsWith(query.toLowerCase())
           })
-          .splice(0, 20)
+          .splice(0, 10)
       )
     },
     handleSelect(entry) {
       this.formData.location = entry.value
     },
-    signUp() {}
+    signUp() {
+    }
   }
 }
 </script>

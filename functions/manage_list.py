@@ -14,6 +14,11 @@ def lambda_handler(event, context):
     if response:
         return {
             'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps({
                 'status': 200,
                 'message': 'Processed Successfully'
@@ -22,6 +27,11 @@ def lambda_handler(event, context):
     else:
         return {
             'statusCode': 422,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps({
                 'status': 422,
                 'message': 'Invalid Input'

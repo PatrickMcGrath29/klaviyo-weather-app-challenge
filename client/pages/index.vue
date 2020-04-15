@@ -61,13 +61,17 @@ export default {
       this.formData.location = entry.value
     },
     signUp() {
-      this.$axios.post(
-        'https://mros2diid4.execute-api.us-east-1.amazonaws.com/default/klaviyo-weather-app-challenge',
-        {
-          email_address: this.formData.emailAddress,
-          location: this.formData.location
-        }
-      )
+      this.$axios
+        .post(
+          'https://mros2diid4.execute-api.us-east-1.amazonaws.com/default/klaviyo-weather-app-challenge',
+          {
+            email_address: this.formData.emailAddress,
+            location: this.formData.location
+          }
+        )
+        .then((res) => {
+          this.formData.emailAddress = this.formData.location = null
+        })
     }
   }
 }

@@ -45,7 +45,7 @@ def fetch_weather_data(location):
 
 def send_email(recipient, location, tag_line, temperature):
     email_body = BODY_HTML.format(tag_line, temperature, location)
-    sender = "Patrick McGrath <patrickmcgrath29@gmail.com>"
+    sender = "Patrick McGrath <hello@patrickmcgrath.io>"
     charset = "UTF-8"
 
     try:

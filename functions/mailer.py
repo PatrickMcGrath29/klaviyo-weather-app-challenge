@@ -1,46 +1,53 @@
 import boto3
-import requests
+import urllib3
+import json
 from botocore.exceptions import ClientError
 
-SENDER = "Patrick McGrath <patrickmcgrath29@gmail.com>"
-AWS_REGION = "us-east-1"
-CHARSET = "UTF-8"
-SUBJECT = "Amazon SES Test (SDK for Python)"
-BODY_TEXT = ("Amazon SES Test (Python)\r\n"
-             "This email was sent with Amazon SES using the "
-             "AWS SDK for Python (Boto)."
-            )
+client = boto3.client('ses',region_name='us-east-1')
 
 BODY_HTML = """
 <html>
 <head></head>
 <body>
-  <h1>Amazon SES Test (SDK for Python)</h1>
-  <p>This email was sent with
-    <a href='https://aws.amazon.com/ses/'>Amazon SES</a> using the
-    <a href='https://aws.amazon.com/sdk-for-python/'>
-      AWS SDK for Python (Boto)</a>.</p>
+  <h1>{}</h1>
+  <p>It's currently {} celsius in {}</p>
 </body>
 </html>
 """
 
 
-client = boto3.client('ses',region_name=AWS_REGION)
-
 def lambda_handler(event, context):
-    pass
+    entry = json.loads(event['Records'][0]['body'])
+    weather_data = fetch_weather_data(entry['location'])
+
+    tag_line = "Enjoy a discount on us."
+
+    todays_description = weather_data[0]['weather']['description']
+    todays_temp = weather_data[0]['temp']
+    todays_precipitation = weather_data[0]['precip']
+    tomorrows_temp = weather_data[1]['temp']
+
+    if todays_description == 'Sunny' or todays_temp >= tomorrows_temp - 5:
+        tag_line = "Its nice out! Enjoy a discount on us."
+    elif todays_precipitation > 0 or todays_temp - 5 <= tomorrows_temp:
+        tag_line = "Not so nice out? That's okay, enjoy a discount on us."
+
+    return send_email(entry['email_address'], entry['location'], tag_line, todays_temp)
 
 def fetch_weather_data(location):
-    res = requests.get('https://api.weatherbit.io/v2.0/forecast/daily', data = {
-        'city': location,
-        'country': 'US',
-        'key': '9d9d424dad75474fa4a98d86de22d164',
-        'days': 2
-    })
+    http = urllib3.PoolManager()
+    res = http.request('GET', 'https://api.weatherbit.io/v2.0/forecast/daily?city={}&country=us&days=2&key={}'.format(
+        location,
+        '9d9d424dad75474fa4a98d86de22d164'
+    ))
 
-    return res
+    return json.loads(res.data)['data']
 
-def send_email(weather_data, recipient):
+def send_email(recipient, location, tag_line, temperature):
+    email_body = BODY_HTML.format(tag_line, temperature, location)
+    sender = "Patrick McGrath <patrickmcgrath29@gmail.com>"
+    charset = "UTF-8"
+
     try:
         client.send_email(
             Destination={
@@ -51,23 +58,20 @@ def send_email(weather_data, recipient):
             Message={
                 'Body': {
                     'Html': {
-                        'Charset': CHARSET,
-                        'Data': BODY_HTML,
-                    },
-                    'Text': {
-                        'Charset': CHARSET,
-                        'Data': BODY_TEXT,
-                    },
+                        'Charset': charset,
+                        'Data': email_body,
+                    }
                 },
                 'Subject': {
-                    'Charset': CHARSET,
-                    'Data': SUBJECT,
+                    'Charset': charset,
+                    'Data': tag_line,
                 },
             },
-            Source=SENDER
+            Source=sender
         )
 
     except ClientError as e:
+        print(e)
         return False
     else:
         return True

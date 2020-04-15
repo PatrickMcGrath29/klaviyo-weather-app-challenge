@@ -62,7 +62,7 @@ export default {
     },
     signUp() {
       this.$axios.post(
-        'https://fa4u66vg85.execute-api.us-east-1.amazonaws.com/default/klaviyo-weather-app-challenge',
+        'https://mros2diid4.execute-api.us-east-1.amazonaws.com/default/klaviyo-weather-app-challenge',
         {
           email_address: this.formData.emailAddress,
           location: this.formData.location
